@@ -1,36 +1,50 @@
-from sklearn.neighbors import KNeighborsClassifier
-import csv
+import pandas as pd
+import seaborn as sns
 import numpy as np
-import scipy as sp
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# Regession is a type of Supervised learning plm in which the responce is continious
+# linear Regression is perticular Machine Learning Model that can be used to solve regression plm
+ 
+
 class Titanic:
-	def genfromtxtReader (self,trainFilePath,testFilePath):
-		X = np.genfromtxt(trainFilePath, delimiter=';', usecols= (2,5,6,7,9))
-		print(X)
-	def csvReader(self,filePath):
-		lines= csv.reader(open(filePath,"r+"))	
-		dataset = list(lines)		
-		return dataset
-	def modelCreation (self,trainFilePath,testFilePath):
-		dataSet = self.csvReader(trainFilePath)		
-		dataSet = np.array(dataSet)	
-		dataSet= sp.delete(dataSet,0,0)
-		X = dataSet[:,[2,5,6,7,9]]
-		print(type(X))		
-		X.astype(np.float)		
-		print(X)		
-		#y = dataSet[:,[1]]		
-		#clf = KNeighborsClassifier(n_neighbors = 5)
-		#clf.fit(X,y)
-		#return clf
-
-
+	def csv_reader(self,filePath):
+		data = pd.read_csv(filePath, index_col = 0)
+		return data
+	def feature_selection(self, data):
+		feature_cols = ['Pclass','Sex','Age', 'SibSp', 'Parch']
+		X = data[feature_cols]
+		X.loc[X['Sex'] == 'male', 'Sex'] = 1
+		X.loc[X['Sex'] == 'female', 'Sex'] = 0
+		X["Age"].fillna(X["Age"].mean(), inplace=True)
+		return X
+		
+	def create_model(self, train_fp):
+		data = self.csv_reader(train_fp)
+		X = self.feature_selection(data)
+		y = data['Survived']
+		X_train,X_test,y_train,y_test = train_test_split(X,y,random_state = 1)
+		linleg = LinearRegression()
+		linleg.fit(X_train,y_train)
+		#y_pred = linleg.predict(X_test)
+		#y_pred[y_pred >=.5] = 1
+		#y_pred[y_pred <.5] = 0
+		#y_pred = y_pred.astype(int)
+		return linleg
+	
+	def prediction(self,model, test_fp):
+		test_data = self.csv_reader(test_fp) 
+		test_X = self.feature_selection(test_data)
+		y_pred = model.predict(test_X)
+		y_pred[y_pred >=.5] = 1
+		y_pred[y_pred <.5] = 0
+		y_pred = y_pred.astype(int)
+		#np.savetxt("D:\\Python\\Kaggle_Competition\\Titanic\\res.csv", y_pred, delimiter=",")
+		print(y_pred)
 if __name__ == "__main__":
-	genFilePath = "/home/vishal/ML/Kaggle_Competition/Titanic/gender_submission.csv"
-	testFilePath = "/home/vishal/ML/Kaggle_Competition/Titanic/test.csv"
-	trainFilePath = "/home/vishal/ML/Kaggle_Competition/Titanic/train.csv"
 	obj = Titanic()
-	obj.modelCreation(trainFilePath,testFilePath)
-	
-
-	
-	
+	train_fp = "D:\\Python\\Kaggle_Competition\\Titanic\\train.csv"
+	test_fp = "D:\\Python\\Kaggle_Competition\\Titanic\\test.csv"
+	linleg = obj.create_model(train_fp)
+	obj.prediction(linleg,test_fp)
