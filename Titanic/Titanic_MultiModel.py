@@ -25,10 +25,17 @@ class Titanic:
 			scores = cross_val_score(knn,X,y,cv = 10,scoring = 'accuracy')
 			k_scores.append(scores.mean())
 		return k_scores.index(max(k_scores))
-
+	
+	def data_scaling(self,X):
+		scaler = MinMaxScaler()
+		scaler.fit(X)
+		X_scaled = scaler.transform(X)
+		return X_scaled
+		
 	def knn_model(self,train_fp):
 		data = self.read_csv(train_fp)
 		X = self.feature_selection(data)
+		X = self.data_scaling(X)
 		y = data['Survived']	
 		k = self.tunning(X,y)
 		knn = KNeighborsClassifier(n_neighbors = k)
@@ -38,6 +45,7 @@ class Titanic:
 	def logreg_model(self,train_fp):
 		data = self.read_csv(train_fp)
 		X = self.feature_selection(data)
+		X = self.data_scaling(X)
 		y = data['Survived']
 		logreg = LogisticRegression()
 		logreg.fit(X,y)
@@ -73,15 +81,18 @@ class Titanic:
 		
 if __name__ == "__main__":
 	obj = Titanic()
-	train_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/train.csv"
-	test_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/test.csv"
-	res_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/responce.csv"
-	gen_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/gender_submission.csv"
+	train_fp = "D:/Vishal/Kaggle_Competition/Titanic/train.csv"
+	#train_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/train.csv"
+	
+	test_fp = "D:/Vishal/Kaggle_Competition/Titanic/test.csv"
+	#test_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/test.csv"
+	
+	res_fp = "D:/Vishal/Kaggle_Competition/Titanic/responce.csv"
+	#res_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/responce.csv"
+	
+	gen_fp = "D:/Vishal/Kaggle_Competition/Titanic/gender_submission.csv"
+	#gen_fp = "/home/vishal/ML/Kaggle_Competition/Titanic/gender_submission.csv"
+	
 	clf = obj.accuracy_test(train_fp,test_fp,gen_fp)
 	obj.prediction(clf,test_fp,res_fp)
-	
-
-
-
-
 	
